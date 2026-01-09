@@ -211,7 +211,7 @@ public class SpecDisplay extends JComponent {
     * ENERGY_EPS is used to ensure that peak integrations work as the user
     * intuitively expects. If a ROI of 0 keV to 1.0 keV is selected, then the
     * natural peak integration algorithm would count channels [0,10), [10,20),
-    * ..., [990,1000), [1000,1010). This suprises users who expect the last
+    * ..., [990,1000), [1000,1010). This surprises users who expect the last
     * channel to not be there. By subtracting off ENERGY_EPS we eliminate this
     * issue with the rare possibility of not including E+ENERGY_EPS/2 correctly.
     */
@@ -1497,8 +1497,9 @@ public class SpecDisplay extends JComponent {
          mCursorPosition = x;
          // Collect spectrum info
          final double e = mEMin + (((mCursorPosition - mPlotRect.x) * (mEMax - mEMin)) / mPlotRect.width);
-         final NumberFormat nf = NumberFormat.getInstance();
+         final NumberFormat nf = DecimalFormat.getNumberInstance();
          final StringBuffer sb = new StringBuffer();
+         nf.setMinimumFractionDigits(0);
          nf.setMaximumFractionDigits(0);
          sb.append(nf.format(e));
          sb.append(" eV");
@@ -1507,7 +1508,10 @@ public class SpecDisplay extends JComponent {
             final int ch = SpectrumUtils.channelForEnergy(sd, e);
             if ((ch >= 0) && (ch < sd.getChannelCount())) {
                sb.append("\n");
-               sb.append(nf.format(sd.getCounts(ch)));
+               final double sc = this.computeScale(sd);
+               final int logSc = 1 - ((int) Math.log10(sc));
+               nf.setMaximumFractionDigits(logSc);
+               sb.append(nf.format(sc * sd.getCounts(ch)));
                sb.append("\t");
                sb.append(sd.toString());
             }
@@ -1533,8 +1537,8 @@ public class SpecDisplay extends JComponent {
 
    private void doPopup(int x, int y) {
       final double e = mEMin + (((x - mPlotRect.x) * (mEMax - mEMin)) / mPlotRect.width);
-      for(Region r : mRegions) {
-         if(r.inside(e)) {
+      for (Region r : mRegions) {
+         if (r.inside(e)) {
             doRegionPopup(x, y);
             return;
          }
@@ -2253,24 +2257,23 @@ public class SpecDisplay extends JComponent {
       return menu;
    }
 
-   
    public void removeMarkedSumPeaks() {
       TreeSet<KLMLine> removeMe = new TreeSet<KLMLine>();
-      for(Region r: SpecDisplay.this.mRegions) {
-         final double low =ToSI.eV(r.getLowEnergy());
-         final double high =ToSI.eV(r.getHighEnergy());
-         for(KLMLine line : SpecDisplay.this.mLines) {
-            if(line instanceof SumPeak sp) {
-               if((sp.mEnergy>=low) && (sp.mEnergy<=high)) {
+      for (Region r : SpecDisplay.this.mRegions) {
+         final double low = ToSI.eV(r.getLowEnergy());
+         final double high = ToSI.eV(r.getHighEnergy());
+         for (KLMLine line : SpecDisplay.this.mLines) {
+            if (line instanceof SumPeak sp) {
+               if ((sp.mEnergy >= low) && (sp.mEnergy <= high)) {
                   removeMe.add(line);
                }
             }
          }
       }
-      if(mKLMPanel!=null)
+      if (mKLMPanel != null)
          mKLMPanel.removeKLMs(removeMe);
    }
-   
+
    /**
     * zoomToRegion - Zoom the horizontal display to contain all the currently
     * selected regions.
