@@ -24,6 +24,45 @@ import gov.nist.microanalysis.Utility.Math2;
  * Note: SumShape is not particularly efficient.
  * </p>
  * <p>
+ * Imagine a large block-shaped regions fully containing two spherical regions 
+ * (A and B) as child regions.  The spherical regions A and B could be called 
+ * siblings – they are children of the same parent.
+ * </p>
+ * <p>
+ * An electron comes along, enters the parent.  Each scattering length, the 
+ * electron now asks: 1) did this path leave the parent? 2) did this path 
+ * intersect with a child?  If 1) is true, the trajectory is stopped at the 
+ * parent’s boundary and restarted outside the parent.  If 2) is true, the 
+ * trajectory is stopped at the child boundary and restarted inside the child.
+ * </p>
+ * <p>
+ * Now imagine, the electron is in the A child sphere, it only checks the A 
+ * child’s boundary (as the A child has no subsequent children).  If it strikes, 
+ * its own boundary, it stops the path and restarts in its *parent’s* region.  
+ * Note, it never checks against entering the B sphere as it only checks itself 
+ * and child regions – not against sibling regions or parent regions.  Upon 
+ * restarting in the parent’s region, it may also be within the B spheres 
+ * region (if A and B overlap) but it won’t know that and will act as though 
+ * it is within the parent region.
+ * </p>
+ * <p>
+ * Thus an electron in region A will never directly enter region B.  Electrons 
+ * will never make transitions from one sibling to another (A to B without 
+ * first going back to the parent).
+ * </p>
+ * <p>
+ * This must be true otherwise overlapping regions are ambiguous.   If region 
+ * A and region B overlap, then it is ambiguous which region the particle is 
+ * located in.
+ * </p>
+ * <p>
+ * The trick is to create non-overlapping regions from overlapping regions.  
+ * Use `ShapeDifference` to create the shape that is within shape A but not 
+ * B and then use `SumShape` to add this to shape B.  The result is two 
+ * non-overlapping regions and no ambiguity.
+ * </p>
+ * 
+ * <p>
  * Copyright: Pursuant to title 17 Section 105 of the United States Code this
  * software is not subject to copyright protection and is in the public domain
  * </p>
