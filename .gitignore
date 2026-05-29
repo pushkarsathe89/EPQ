@@ -1,3 +1,13 @@
 src/gov/nist/microanalysis/EPQLibrary/revision
 /target/
 pom.xml
+.toolchain/
+Meshes/
+*.classpath
+*.project
+*.prefs
+
+cp.txt
+epq-toolchain.sh
+__pycache__/
+*.pyc
